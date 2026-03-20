@@ -1,21 +1,31 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { login } from '../services/api'
 
 export default function Login() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!username || !password) return toast.error('Please enter username and password')
     
-    if (username === 'vijivet' && password === '123456') {
+    setLoading(true)
+    try {
+      const res = await login({ username, password })
+      // Store the JWT token and auth flag
+      localStorage.setItem('token', res.token)
       localStorage.setItem('isAuthenticated', 'true')
+      localStorage.setItem('user', JSON.stringify(res.user))
       toast.success('Login successful!')
       navigate('/dashboard')
-    } else {
-      toast.error('Invalid username or password')
+    } catch (err) {
+      toast.error(err.message || 'Invalid username or password')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -38,6 +48,7 @@ export default function Login() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
+              autoComplete="username"
             />
           </div>
           
@@ -50,11 +61,17 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              autoComplete="current-password"
             />
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '12px', fontSize: '15px' }}>
-            Login to Dashboard
+          <button
+            type="submit"
+            className="btn btn-primary"
+            style={{ width: '100%', padding: '12px', fontSize: '15px' }}
+            disabled={loading}
+          >
+            {loading ? '⏳ Logging in...' : 'Login to Dashboard'}
           </button>
         </form>
       </div>

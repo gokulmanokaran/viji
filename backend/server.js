@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const compression = require('compression');
-const apicache = require('apicache');
 const connectDB = require('./config/db');
 
 // Connect to MongoDB
@@ -14,15 +13,6 @@ const app = express();
 app.use(cors());
 app.use(compression()); // Compress all responses
 app.use(express.json());
-
-// API Cache for GET requests (5 minutes)
-const cache = apicache.middleware;
-app.use('/api', (req, res, next) => {
-  if (req.method === 'GET') {
-    return cache('5 minutes')(req, res, next);
-  }
-  next();
-});
 
 // Health check
 app.get('/', (req, res) => res.json({ message: 'Vet Clinic API is running ✅' }));
